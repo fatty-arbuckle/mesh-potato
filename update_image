@@ -1,0 +1,11 @@
+#! /bin/bash
+
+PI_HOSTNAME=$1
+
+if [ -z "$PI_HOSTNAME" ]
+then
+    echo "*** a blank hostname is not supported"
+    exit
+fi
+
+echo "The hostname will be $1"
