@@ -1,0 +1,141 @@
+#! /bin/bash
+
+ME=`basename $0`
+
+if [ "$EUID" -ne 0 ]
+then
+    echo
+    echo "*** Please run ${ME} as root"
+    echo
+    exit
+fi
+
+help() {
+    echo 
+    echo "${ME} --target <device>"
+    echo
+    echo "    -t, --target <device>   specify the device to create the new image on."
+    echo "                            WARNING: this will be destructive to the device!"
+    echo
+    echo "    -i, --image <?.tar.gz>  specify the Arch Linux RPi image to use."
+    echo
+    exit
+}
+
+while [[ $# > 1 ]]
+do
+key="$1"
+
+case $key in
+    -t|--target)
+        TARGET="$2"
+        shift 
+    ;;
+    -i|-image)
+        BASE_IMAGE="$2"
+        shift 
+    ;;
+    *)
+        # unknown option
+        help
+    ;;
+esac
+shift # past argument or value
+done
+
+if [ -z "$TARGET" ]
+then
+    echo
+    echo "*** The --target option cannot be empty"
+    help
+fi
+
+if [ ! -b "$TARGET" ]
+then
+    echo
+    echo "*** '${TARGET}' must be a block device"
+    echo
+    exit
+fi
+
+if [ -z "$BASE_IMAGE" ]
+then
+    echo
+    echo "*** The --image option cannot be empty"
+    help
+fi
+
+if [ ! -f "$BASE_IMAGE" ]
+then
+    echo
+    echo "*** '${BASE_IMAGE}' must exist and be a valid file"
+    echo
+    exit
+fi
+
+echo
+echo "!!! ERASING ALL DATA ON ${TARGET} !!!"
+echo
+
+while true; do
+    echo
+    read -p "Do you wish erase all of the data on ${TARGET}? " yn
+    case $yn in
+        [Yy]* )
+            break
+            ;;
+        [Nn]* )
+            echo "Ok. Exitting..."
+            echo
+            exit
+            ;;
+        * )
+            echo "Please answer yes or no."
+            ;;
+    esac
+done
+
+echo "=====> Partitioning the disk <====="
+
+echo "o
+n
+p
+1
+
++512M
+t
+c
+n
+p
+2
+
+
+p
+w
+" | fdisk ${TARGET} 
+
+
+OUTPUT=tmp
+IMAGE_ROOT=${OUTPUT}/image
+TARGET_BOOT=${TARGET}1 
+TARGET_ROOT=${TARGET}2 
+
+echo "=====> Making the filesystems on '${TARGET}'"
+
+mkfs.vfat ${TARGET_BOOT}
+mkdir -p ${IMAGE_ROOT}/boot
+mount ${TARGET_BOOT} ${IMAGE_ROOT}/boot
+
+mkfs.ext4 ${TARGET_ROOT}
+mkdir -p ${IMAGE_ROOT}/root
+mount ${TARGET_ROOT} ${IMAGE_ROOT}/root
+
+echo "=====> Copying '${BASE_IMAGE}' to '${TARGET}'" 
+
+bsdtar -xpf ${BASE_IMAGE} -C ${IMAGE_ROOT}/root
+sync
+
+mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
+umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
+
+echo "=====> Done.  You may remove '${TARGET}'" 
