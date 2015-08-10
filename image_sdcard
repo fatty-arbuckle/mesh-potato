@@ -14,12 +14,14 @@ help() {
     echo 
     echo "${ME} --target <device>"
     echo
-    echo "    -t, --target <device>    specify the device to create the new image on."
-    echo "                             WARNING: this will be destructive to the device!"
+    echo "    -t, --target <device>       specify the device to create the new image on."
+    echo "                                WARNING: this will be destructive to the device!"
     echo
-    echo "    -i, --image <?.tar.gz>   specify the Arch Linux RPi image to use."
+    echo "    -i, --image <?.tar.gz>      specify the Arch Linux RPi image to use."
     echo
-    echo "    -h, --host <host name>   specify the host name of the new node."
+    echo "    -h, --host <host name>      specify the host name of the new node."
+    echo
+    echo "    -n, --lan <LAN inferface>   specify the host name of the new node."
     echo
     exit
 }
@@ -38,7 +40,11 @@ case $key in
         shift 
     ;;
     -h|--host)
-        HOSTNAME="$2"
+        PI_HOSTNAME="$2"
+        shift 
+    ;;
+    -n|--lan)
+        LAN_INTERFACE="$2"
         shift 
     ;;
     *)
@@ -77,6 +83,17 @@ then
     echo "*** '${BASE_IMAGE}' must exist and be a valid file"
     echo
     exit
+fi
+
+if [ -z "$PI_HOSTNAME" ]
+then
+    RANDHOSTSTRING=`< /dev/urandom tr -dc A-Za-z0-9 | head -c${1:-8}`
+    PI_HOSTNAME="mesh-potato-${RANDHOSTSTRING}"
+fi
+
+if [ -z "$LAN_INTERFACE" ]
+then
+    LAN_INTERFACE="enp0s20u3"
 fi
 
 echo
@@ -142,6 +159,10 @@ bsdtar -xpf ${BASE_IMAGE} -C ${IMAGE_ROOT}/root
 sync
 
 mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
+
+echo "=====> Setting up the image" 
+
+update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE}
 
 echo "=====> Unmounting'${TARGET}'" 
 

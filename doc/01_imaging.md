@@ -27,6 +27,31 @@
 
     You can download the latest Arch Linux ARM files for Raspberry Pi [here](http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz)
 
+- Have a LAN interface up with an ipv6 address
+
+    You can list your interfaces' addresses using the `ip addr show` command
+
+        $ ip addr show
+        1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+            link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+            inet 127.0.0.1/8 scope host lo
+               valid_lft forever preferred_lft forever
+            inet6 ::1/128 scope host 
+               valid_lft forever preferred_lft forever
+        2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+            link/ether 34:02:86:60:e0:55 brd ff:ff:ff:ff:ff:ff
+            inet 172.27.5.72/21 brd 172.27.7.255 scope global wlp2s0
+               valid_lft forever preferred_lft forever
+            inet6 fe80::3602:86ff:fe60:e055/64 scope link 
+               valid_lft forever preferred_lft forever
+        3: enp0s20u3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+            link/ether 9c:eb:e8:20:49:20 brd ff:ff:ff:ff:ff:ff
+
+    You can bring the LAN interface up with the following command,
+
+        $ sudo ip link set enp0s20u3 up
+
+
 ### Scripted Setup
 
 - You may apply the Arch Linux ARM image by running the `image_sdcard` script.

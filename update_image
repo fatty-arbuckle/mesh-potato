@@ -1,6 +1,27 @@
 #! /bin/bash
 
-PI_HOSTNAME=$1
+ME=`basename $0`
+
+if [ "$EUID" -ne 0 ]
+then
+    echo
+    echo "*** Please run ${ME} as root"
+    echo
+    exit
+fi
+
+
+ROOT=$1
+PI_HOSTNAME=$2
+HOST_INTERFACE=$3
+
+HOST_IPV6=`ip addr show enp0s20u3 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+
+if [ ! -d "$ROOT" ]
+then
+    echo "*** ${ROOT} must be a directory"
+    exit
+fi
 
 if [ -z "$PI_HOSTNAME" ]
 then
@@ -8,4 +29,31 @@ then
     exit
 fi
 
-echo "The hostname will be $1"
+if [ -z "$HOST_INTERFACE" ]
+then
+    echo "*** a blank host interface is not supported"
+    exit
+fi
+
+echo "    ...update settings on ${ROOT}"
+
+echo "    ...setting the hostname to ${PI_HOSTNAME}"
+
+echo ${PI_HOSTNAME} > ${ROOT}/etc/hostname
+
+HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+HOST_IPV6="fe80::9eeb:e8ff:fe20:4920"
+
+echo "    ...setting the pacman mirrotlist to ${HOST_IPV6}"
+
+cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
+#
+# Arch Linux ARM repository mirrorlist
+# Generated on ${ME} mesh-potato script
+#
+
+### Local mesh-potato server
+Server = http://[${HOST_IPV6}]:8686/$arch/$repo
+
+EOF
+
