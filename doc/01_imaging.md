@@ -1,18 +1,13 @@
 
-### Applying the Base Image
+# mesh-potato
 
-#### Assumptions
+## Applying the Base Image
 
-- Your running Arch Linux on the host
-- Using a Raspberry Pi B+
+### Assumptions
 
-#### Scripted Setup
+- Your SD card is attached to your host and you have the device name (i.e., /dev/sdb)
 
-#### Manual Instructions
-
-These instructions where derived from [archlinux|ARM website}(http://archlinuxarm.org/platforms/armv6/raspberry-pi).
-
-1. Insert the SD Card and run `dmesg` to find the device name for the SD card,
+    You can find the device name by running `dmesg` after inserting your SD card:
 
         [21302.406801] usb 1-1: new high-speed USB device number 4 using xhci_hcd
         [21303.101935] usb-storage 1-1:1.0: USB Mass Storage device detected
@@ -28,18 +23,35 @@ These instructions where derived from [archlinux|ARM website}(http://archlinuxar
         [21304.135471] sd 2:0:0:0: [sdb] Attached SCSI disk
         [21350.696145] snd_hda_intel 0000:00:1b.0: IRQ timing workaround is activated for card #1. Suggest a bigger bdl_pos_adj.
 
-2. Start fdisk to partition the SD card:
+- You have an Arch Linux ARM tar.gz file to copy onto the SD card
 
-        fdisk /dev/sdX
-        At the fdisk prompt, delete old partitions and create a new one:
-        Type o. This will clear out any partitions on the drive.
-        Type p to list partitions. There should be no partitions left.
-        Type n, then p for primary, 1 for the first partition on the drive, press ENTER to accept the default first sector, then type +512M for the last sector.
-        Type t, then c to set the first partition to type W95 FAT32 (LBA).
-        Type n, then p for primary, 2 for the second partition on the drive, and then press ENTER twice to accept the default first and last sector.
-        Write the partition table and exit by typing w.
+    You can download the latest Arch Linux ARM files for Raspberry Pi [here](http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz)
 
-        [phatty@arbuckle mesh-potato]$ sudo fdisk /dev/sdb 
+### Scripted Setup
+
+- You may apply the Arch Linux ARM image by running the `image_sdcard` script.
+
+    image_sdcard --target <device>
+    
+        -t, --target <device>   specify the device to create the new image on.
+                                WARNING: this will be destructive to the device!
+    
+        -i, --image <?.tar.gz>  specify the Arch Linux RPi image to use.
+
+
+### Manual Instructions
+
+The `image_sdcard` automates all of the following instructions. These instructions where derived from
+[archlinux|ARM website](http://archlinuxarm.org/platforms/armv6/raspberry-pi).
+
+#### Start fdisk to partition the SD card:
+
+Run `fdisk` to create two partitions: the boot partition--512M of type W95 FAT32 (LBA), and the root
+partition of type Linux on the rest of the disk.
+
+1. fdisk /dev/sdb
+
+        $ sudo fdisk /dev/sdb 
         
         Welcome to fdisk (util-linux 2.26.2).
         Changes will remain in memory only, until you decide to write them.
@@ -100,32 +112,22 @@ These instructions where derived from [archlinux|ARM website}(http://archlinuxar
         The partition table has been altered.
         Calling ioctl() to re-read partition table.
         Syncing disks.
-        
-        [phatty@arbuckle mesh-potato]$
 
-3. Create and mount the FAT filesystem:
+#### Create and Mount the Filesystem:
 
-        mkfs.vfat /dev/sdX1
-        mkdir boot
-        mount /dev/sdX1 boot
+1. Make the FAT filesystem on the first partition
 
-
-        [phatty@arbuckle mesh-potato]$ sudo mkfs.vfat /dev/sdb1 
+        $ sudo mkfs.vfat /dev/sdb1 
         mkfs.fat 3.0.28 (2015-05-16)
-        [phatty@arbuckle mesh-potato]$ mkdir boot
-        [phatty@arbuckle mesh-potato]$ sudo mount /de
-        [phatty@arbuckle mesh-potato]$ sudo mount /dev/sdb1 boot
-        [phatty@arbuckle mesh-potato]$ 
+
+2. Mount the first partition
+
+        $ mkdir boot
+        $ sudo mount /dev/sdb1 boot
         
+3. Make the ext4 filesystem on the second partition
 
-
-4. Create and mount the ext4 filesystem:
-
-        mkfs.ext4 /dev/sdX2
-        mkdir root
-        mount /dev/sdX2 root
-
-        [phatty@arbuckle mesh-potato]$ sudo mkfs.ext4 /dev/sdb2 
+        $ sudo mkfs.ext4 /dev/sdb2 
         mke2fs 1.42.12 (29-Aug-2014)
         Creating filesystem with 3758208 4k blocks and 940240 inodes
         Filesystem UUID: 6d9275b2-6a5e-4216-8637-8ec8ac4f1d3d
@@ -137,31 +139,28 @@ These instructions where derived from [archlinux|ARM website}(http://archlinuxar
         Creating journal (32768 blocks): done
         Writing superblocks and filesystem accounting information: done   
         
-        
-        [phatty@arbuckle mesh-potato]$ mkdir root
-        [phatty@arbuckle mesh-potato]$ sudo mount /dev/sdb2 root
+5. Mount the second partition
 
+        $ mkdir root
+        $ sudo mount /dev/sdb2 root
 
-5. Download and extract the root filesystem (as root, not via sudo):
+#### Extract the root filesystem (as root, not via sudo):
 
-        wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz
-        bsdtar -xpf ArchLinuxARM-rpi-latest.tar.gz -C root
-        sync
+1. Unpack the Arch Linux ARM onto the SD card
 
-        [phatty@arbuckle mesh-potato]$ sudo bsdtar -xpf ../meshpotato/base_image/ArchLinuxARM-rpi-latest.tar.gz -C root
-        [phatty@arbuckle mesh-potato]$ sync
-        [phatty@arbuckle mesh-potato]$
+        $ sudo bsdtar -xpf ../meshpotato/base_image/ArchLinuxARM-rpi-latest.tar.gz -C root
+        $ sync
 
+2. Move the boot files to the proper place
 
-6. Move boot files to the first partition:
+        $ sudo mv root/boot/* boot/
 
-        mv root/boot/* boot
+#### Apply Changes
 
-        [phatty@arbuckle mesh-potato]$ sudo mv root/boot/* boot/
+TODO
 
-7. Unmount the two partitions:
+#### Finishing
 
-        umount boot root
+1. Unmount the SD card
 
-        [phatty@arbuckle mesh-potato]$ sudo umount boot root
-        [phatty@arbuckle mesh-potato]$ 
+        $ sudo umount boot root

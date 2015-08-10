@@ -1,28 +1,36 @@
+# mesh-potato
 
-### First Boot of the Pi
+## First Boot of the Pi
 
-#### Assumptions
+### Assumptions
 
-#### Scripted Setup
+- You have a properly imaged SD card as described in the [imaging document](01_imaging.md).
 
-#### Manual Instructions
+- Your host machine is running a local `pacman` server. See the [local pacman repository document](00_pacman_server.md) for more information.
 
+### Scripted Setup
 
-1. Insert the SD card into the Pi, connect ethernet, and apply 5V power.
+TODO
+
+Create a script that runs at first boot.  It must auto install the required packages.
+
+### Manual Instructions
+
+1. Insert the SD card into the Pi, connect ethernet to the Pi and the host, and apply 5V power.
 
 2. Find the link local address of the Pi
 
     a. enable your ethernet interface if needed
 
-        [phatty@arbuckle mesh-potato]$ ip link
-        1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default 
-            link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-        2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DORMANT group default qlen 1000
-            link/ether 34:02:86:60:e0:55 brd ff:ff:ff:ff:ff:ff
-        3: enp0s20u2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
-            link/ether 9c:eb:e8:20:49:20 brd ff:ff:ff:ff:ff:ff
-
-        [phatty@arbuckle mesh-potato]$ sudo ip link set enp0s20u2 up
+            $ ip link
+            1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default 
+                link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+            2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DORMANT group default qlen 1000
+                link/ether 34:02:86:60:e0:55 brd ff:ff:ff:ff:ff:ff
+            3: enp0s20u2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+                link/ether 9c:eb:e8:20:49:20 brd ff:ff:ff:ff:ff:ff
+             
+            $ sudo ip link set enp0s20u2 up
 
     b. Ping the link local addresses,
 
@@ -52,3 +60,12 @@
                Forum: http://archlinuxarm.org/forum
                  IRC: #archlinux-arm on irc.Freenode.net
         [root@alarmpi ~]#
+
+4. Configure the mesh network
+
+    a. `iw dev wlan0 interface add mesh0 type mp`
+
+    b. `ifconfig mesh0 up`
+
+    c. `iw dev mesh0 join meshpotato`
+
