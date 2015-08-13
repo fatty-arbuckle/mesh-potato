@@ -182,7 +182,33 @@ partition of type Linux on the rest of the disk.
 
 #### Apply Changes
 
-TODO
+1. Set the hostname for the Pi
+
+        $ echo "mesh-potato-somename" > ./tmp/image/root/etc/hostname
+
+2. Set the pacman mirrorlist to point the host's server
+
+        $ ip addr show
+        1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+            link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+            inet 127.0.0.1/8 scope host lo
+               valid_lft forever preferred_lft forever
+            inet6 ::1/128 scope host 
+               valid_lft forever preferred_lft forever
+        4: enp0s20u3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+            link/ether 9c:eb:e8:20:49:20 brd ff:ff:ff:ff:ff:ff
+            inet6 fe80::9eeb:e8ff:fe20:4920/64 scope link 
+               valid_lft forever preferred_lft forever
+
+        $ cat << EOF > ./tmp/image/root/etc/pacman.d/mirrorlist
+        #
+        # Arch Linux ARM repository mirrorlist
+        #
+         
+        ### Local mesh-potato server
+        Server = http://[fe80::9eeb:e8ff:fe20:4920%eth0]:8686/\$arch/\$repo
+         
+        EOF
 
 #### Finishing
 

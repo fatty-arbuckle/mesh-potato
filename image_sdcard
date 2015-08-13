@@ -10,6 +10,16 @@ then
     exit
 fi
 
+function test {
+    "$@"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "***** error with $1" >&2
+        exit
+    fi
+    return $status
+}
+
 help() {
     echo 
     echo "${ME} --target <device>"
@@ -21,7 +31,7 @@ help() {
     echo
     echo "    -h, --host <host name>      specify the host name of the new node."
     echo
-    echo "    -n, --lan <LAN inferface>   specify the host name of the new node."
+    echo "    -n, --lan <LAN inferface>   specify the name of the new LAN interface of the host."
     echo
     exit
 }
@@ -118,9 +128,18 @@ while true; do
     esac
 done
 
+OUTPUT=tmp
+IMAGE_ROOT=${OUTPUT}/image
+TARGET_BOOT=${TARGET}1 
+TARGET_ROOT=${TARGET}2 
+
+echo "=====> Attempting to unmount '${TARGET}'" 
+
+umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
+
 echo "=====> Partitioning the disk <====="
 
-echo "o
+test echo "o
 n
 p
 1
@@ -137,35 +156,29 @@ p
 w
 " | fdisk ${TARGET} 
 
-
-OUTPUT=tmp
-IMAGE_ROOT=${OUTPUT}/image
-TARGET_BOOT=${TARGET}1 
-TARGET_ROOT=${TARGET}2 
-
 echo "=====> Making the filesystems on '${TARGET}'"
 
-mkfs.vfat ${TARGET_BOOT}
-mkdir -p ${IMAGE_ROOT}/boot
-mount ${TARGET_BOOT} ${IMAGE_ROOT}/boot
+test mkfs.vfat ${TARGET_BOOT}
+test mkdir -p ${IMAGE_ROOT}/boot
+test mount ${TARGET_BOOT} ${IMAGE_ROOT}/boot
 
-mkfs.ext4 ${TARGET_ROOT}
-mkdir -p ${IMAGE_ROOT}/root
-mount ${TARGET_ROOT} ${IMAGE_ROOT}/root
+test echo "y" | mkfs.ext4 -q ${TARGET_ROOT}
+test mkdir -p ${IMAGE_ROOT}/root
+test mount ${TARGET_ROOT} ${IMAGE_ROOT}/root
 
 echo "=====> Copying '${BASE_IMAGE}' to '${TARGET}'" 
 
-bsdtar -xpf ${BASE_IMAGE} -C ${IMAGE_ROOT}/root
-sync
+test bsdtar -xpf ${BASE_IMAGE} -C ${IMAGE_ROOT}/root
+test sync
 
-mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
+test mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
 
 echo "=====> Setting up the image" 
 
-update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE}
+test ./update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE}
 
 echo "=====> Unmounting'${TARGET}'" 
 
-umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
+test umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
 
 echo "=====> Done.  You may remove '${TARGET}'" 
