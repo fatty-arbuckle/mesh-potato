@@ -106,6 +106,15 @@ then
     LAN_INTERFACE="enp0s20u3"
 fi
 
+VALID_IPV6=`ip addr show ${LAN_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+if [ -z "$VALID_IPV6" ]
+then
+    echo
+    echo "*** '${LAN_INTERFACE}' must be up with an IPV6 address to continue"
+    echo
+    exit
+fi
+
 echo
 echo "!!! ERASING ALL DATA ON ${TARGET} !!!"
 echo

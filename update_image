@@ -67,3 +67,7 @@ Server = http://[${HOST_IPV6}%eth0]:8686/\$arch/\$repo
 
 EOF
 
+echo "    ...copying the first_boot script to the Pi"
+cp first_boot ${ROOT}/home/root/first_boot
+
+
