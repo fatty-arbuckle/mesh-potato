@@ -1,5 +1,10 @@
 #! /bin/bash
 
+##
+## Commands to run at first boot on the mesh-potato Pi device
+##
+
+
 ME=`basename $0`
 
 echo "Running ${ME}..."
@@ -8,5 +13,8 @@ pacman -S iw
 
 iw dev wlan0 interface add mesh0 type mp
 ifconfig mesh0 up
-iw dev mesh0 join meshpotato
+iw dev mesh0 mesh join meshpotato
 
+
+## TODO
+# disable or remove this script
