@@ -11,9 +11,10 @@ echo "Running ${ME}..."
 
 pacman -S iw
 
-iw dev wlan0 interface add mesh0 type mp
-ifconfig mesh0 up
-iw dev mesh0 mesh join meshpotato
+/root/.mesh-potato/enable_mesh
+systemctl enable mesh-potato.service
+
+pacman -S avahi
 
 
 ## TODO

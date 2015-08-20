@@ -67,6 +67,14 @@ Server = http://[${HOST_IPV6}%eth0]:8686/\$arch/\$repo
 
 EOF
 
+echo "    ...creating mesh network setup scripts"
+
+mkdir -p ${ROOT}/root/.mesh-potato
+cp enable_mesh ${ROOT}/root/.mesh-potato/
+chmod 755 ${ROOT}/root/.mesh-potato/
+cp mesh-potato.service ${ROOT}/etc/systemd/system/
+
+
 echo "    ...copying the first_boot script to the Pi"
 cp first_boot ${ROOT}/root/first_boot
 

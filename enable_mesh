@@ -1,0 +1,28 @@
+#! /bin/bash
+
+##
+## Commands to join the mesh-potato network
+##
+
+
+ME=`basename $0`
+
+echo "Running ${ME}..."
+
+i="0"
+ifconfig -a wlan0
+while [ $? != 0 ]
+do
+    if [ $i -gt 10 ]
+    then
+        exit 1
+    fi
+    i=$[$i+1]
+    sleep 1
+    ifconfig -a wlan0
+done
+
+iw dev wlan0 interface add mesh0 type mp
+ifconfig mesh0 up
+iw dev mesh0 mesh join meshpotato
+
