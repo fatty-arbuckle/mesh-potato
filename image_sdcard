@@ -31,7 +31,7 @@ help() {
     echo
     echo "    -h, --host <host name>      specify the host name of the new node."
     echo
-    echo "    -n, --lan <LAN inferface>   specify the name of the new LAN interface of the host."
+    echo "    -n, --lan <LAN inferface>   specify the name of the LAN interface the host will be on."
     echo
     exit
 }
