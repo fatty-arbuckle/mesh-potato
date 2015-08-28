@@ -2,6 +2,10 @@
 
 ME=`basename $0`
 
+### ##############################################
+###
+### Validation
+
 if [ "$EUID" -ne 0 ]
 then
     echo
@@ -10,21 +14,17 @@ then
     exit
 fi
 
-function test {
-    "$@"
-    local status=$?
-    if [ $status -ne 0 ]; then
-        echo "error with $1" >&2
-    fi
-    return $status
-}
-
+if [ "$#" -ne 4 ]; then
+    echo "Unexpected number of parameters"
+    echo "This script is intended to be run from the image_sdcard script and not by hand"
+fi
 
 ROOT=$1
 PI_HOSTNAME=$2
 HOST_INTERFACE=$3
+HOST_PUBLIC_KEY=$4
 
-HOST_IPV6=`ip addr show enp0s20u3 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+### DELETEME? HOST_IPV6=`ip addr show enp0s20u3 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
 
 if [ ! -d "$ROOT" ]
 then
@@ -44,38 +44,93 @@ then
     exit
 fi
 
-echo "    ...update settings on ${ROOT}"
+if [ -z "$HOST_PUBLIC_KEY" ]
+then
+    echo "*** a public key is required"
+    exit
+fi
 
-echo "    ...setting the hostname to ${PI_HOSTNAME}"
+### ##############################################
+###
+### MAIN FUNCTION
 
-test echo ${PI_HOSTNAME} > ${ROOT}/etc/hostname
+main() {
+    #echo "    ...update settings on ${ROOT}"
+    set_hostname
+    set_pacman_mirrotlist
+    create_mesh_network_scripts
+    setup_host_ssh_public_key_access
+    set_root_password
+    setup_first_boot
+}
 
-HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
-# hardcode this address in an emergency
-# HOST_IPV6="fe80::9eeb:e8ff:fe20:4920"
+### ##############################################
+###
+### setup functions
 
-echo "    ...setting the pacman mirrotlist to ${HOST_IPV6}"
+function test {
+    local the_cmd="$@"
+    echo "    ---> ${the_cmd}"
+    eval "${the_cmd}"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "error with $1" >&2
+    fi
+    return $status
+}
 
-test cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
+function set_hostname() {
+    echo "    ...setting the hostname to ${PI_HOSTNAME}"
+    echo ${PI_HOSTNAME} > ${ROOT}/etc/hostname
+    HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+    # hardcode this address in an emergency
+    # HOST_IPV6="fe80::9eeb:e8ff:fe20:4920"
+}
+
+function set_pacman_mirrotlist() {
+    echo "    ...setting the pacman mirrotlist to ${HOST_IPV6}"
+
+    test cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
 #
 # Arch Linux ARM repository mirrorlist
 # Generated on ${ME} mesh-potato script
 #
-
+   
 ### Local mesh-potato server
 Server = http://[${HOST_IPV6}%eth0]:8686/\$arch/\$repo
-
+   
 EOF
+}
 
-echo "    ...creating mesh network setup scripts"
+function create_mesh_network_scripts() {
+    echo "    ...creating mesh network setup scripts"
+    test mkdir -p ${ROOT}/root/.mesh-potato
+    test cp enable_mesh ${ROOT}/root/.mesh-potato/
+    test chmod 755 ${ROOT}/root/.mesh-potato/
+    test cp mesh-potato.service ${ROOT}/etc/systemd/system/
+}
 
-mkdir -p ${ROOT}/root/.mesh-potato
-cp enable_mesh ${ROOT}/root/.mesh-potato/
-chmod 755 ${ROOT}/root/.mesh-potato/
-cp mesh-potato.service ${ROOT}/etc/systemd/system/
+function setup_host_ssh_public_key_access() {
+    echo "    ...adding host's SSH public key"
+    test mkdir ${ROOT}/root/.ssh
+    test cp ${HOST_PUBLIC_KEY} ${ROOT}/root/.ssh/authorized_keys
+}
+
+function set_root_password() {
+    echo "    ...setting the root password on the Pi"
+    local hash=`./new_pw_hash | sed 's/[\\\/&]/\\&/g'`
+    sed -i '/^root.*/ c\root:'"${hash}"':0::::::' ${ROOT}/etc/shadow
+    cp ${ROOT}/etc/shadow ${ROOT}/etc/shadow-
+}
+
+function setup_first_boot() {
+    echo "    ...copying the first_boot script to the Pi"
+    test cp first_boot ${ROOT}/root/first_boot
+}
 
 
-echo "    ...copying the first_boot script to the Pi"
-cp first_boot ${ROOT}/root/first_boot
+### ##############################################
+###
+### run it
 
-
+main

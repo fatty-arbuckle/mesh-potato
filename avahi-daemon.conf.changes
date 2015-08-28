@@ -1,0 +1,4 @@
+use-ipv4=no
+use-ipv6=yes
+allow-interfaces=mesh0
+

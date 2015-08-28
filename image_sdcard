@@ -11,7 +11,9 @@ then
 fi
 
 function test {
-    "$@"
+    local the_cmd="$@"
+    echo "     ---> ${the_cmd}"
+    eval "${the_cmd}"
     local status=$?
     if [ $status -ne 0 ]; then
         echo "***** error with $1" >&2
@@ -24,14 +26,18 @@ help() {
     echo 
     echo "${ME} --target <device>"
     echo
-    echo "    -t, --target <device>       specify the device to create the new image on."
-    echo "                                WARNING: this will be destructive to the device!"
+    echo "    -t, --target <device>          specify the device to create the new image on."
+    echo "                                   WARNING: this will be destructive to the device!"
     echo
-    echo "    -i, --image <?.tar.gz>      specify the Arch Linux RPi image to use."
+    echo "    -i, --image <?.tar.gz>         specify the Arch Linux RPi image to use."
     echo
-    echo "    -h, --host <host name>      specify the host name of the new node."
+    echo "    -h, --host <host name>         specify the host name of the new node."
     echo
-    echo "    -n, --lan <LAN inferface>   specify the name of the LAN interface the host will be on."
+    echo "    -n, --lan <LAN inferface>      specify the name of the LAN interface the host is on."
+    echo
+    echo "    -p, --public_key <public key>  specify public SSH key to use to connect to the Pi."
+    echo "                                   NOTE: If no key is specified the key in ./access/host_id.pub"
+    echo "                                         will be used; if no key exists there one will be created."
     echo
     exit
 }
@@ -55,6 +61,10 @@ case $key in
     ;;
     -n|--lan)
         LAN_INTERFACE="$2"
+        shift 
+    ;;
+    -p|--public_key)
+        HOST_PUBLIC_KEY="$2"
         shift 
     ;;
     *)
@@ -115,6 +125,16 @@ then
     exit
 fi
 
+if [ ! -f "$HOST_PUBLIC_KEY" ]
+then
+    HOST_PUBLIC_KEY=access/host_id.pub
+    if [ ! -f "$HOST_PUBLIC_KEY" ]
+    then
+        echo "===> Creating SSH key for accessing Pi"
+        test ssh-keygen -b 2048 -N "" -C "mesh-potato host access" -f access/host_id
+    fi
+fi
+
 echo
 echo "!!! ERASING ALL DATA ON ${TARGET} !!!"
 echo
@@ -142,13 +162,13 @@ IMAGE_ROOT=${OUTPUT}/image
 TARGET_BOOT=${TARGET}1 
 TARGET_ROOT=${TARGET}2 
 
-echo "=====> Attempting to unmount '${TARGET}'" 
+echo "===> Attempting to unmount '${TARGET}'" 
 
 umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
 
-echo "=====> Partitioning the disk <====="
+echo "===> Partitioning the disk"
 
-test echo "o
+echo "o
 n
 p
 1
@@ -165,29 +185,29 @@ p
 w
 " | fdisk ${TARGET} 
 
-echo "=====> Making the filesystems on '${TARGET}'"
+echo "===> Making the filesystems on '${TARGET}'"
 
 test mkfs.vfat ${TARGET_BOOT}
 test mkdir -p ${IMAGE_ROOT}/boot
 test mount ${TARGET_BOOT} ${IMAGE_ROOT}/boot
 
-test echo "y" | mkfs.ext4 -q ${TARGET_ROOT}
+echo "y" | test mkfs.ext4 -q ${TARGET_ROOT}
 test mkdir -p ${IMAGE_ROOT}/root
 test mount ${TARGET_ROOT} ${IMAGE_ROOT}/root
 
-echo "=====> Copying '${BASE_IMAGE}' to '${TARGET}'" 
+echo "===> Copying '${BASE_IMAGE}' to '${TARGET}'" 
 
 test bsdtar -xpf ${BASE_IMAGE} -C ${IMAGE_ROOT}/root
 test sync
 
 test mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
 
-echo "=====> Setting up the image" 
+echo "===> Setting up the image" 
 
-test ./update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE}
+test ./update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE} ${HOST_PUBLIC_KEY}
 
-echo "=====> Unmounting'${TARGET}'" 
+echo "===> Unmounting'${TARGET}'" 
 
 test umount ${IMAGE_ROOT}/root ${IMAGE_ROOT}/boot
 
-echo "=====> Done.  You may remove '${TARGET}'" 
+echo "===> Done.  You may remove '${TARGET}'" 
