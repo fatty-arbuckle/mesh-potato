@@ -5,7 +5,5 @@ import random
 import string
 
 str = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
-
 foo = crypt(str, "$6$G6Lw6Ofp")
-
 print(foo)

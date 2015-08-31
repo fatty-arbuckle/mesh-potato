@@ -1,0 +1,12 @@
+[Unit]
+Description=mesh-potato first boot bootstrap
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/root/.mesh-potato/first_boot
+
+[Install]
+WantedBy=multi-user.target
+

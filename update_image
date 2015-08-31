@@ -90,7 +90,7 @@ function set_hostname() {
 function set_pacman_mirrotlist() {
     echo "    ...setting the pacman mirrotlist to ${HOST_IPV6}"
 
-    test cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
+    cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
 #
 # Arch Linux ARM repository mirrorlist
 # Generated on ${ME} mesh-potato script
@@ -119,15 +119,17 @@ function setup_host_ssh_public_key_access() {
 function set_root_password() {
     echo "    ...setting the root password on the Pi"
     local hash=`./new_pw_hash | sed 's/[\\\/&]/\\&/g'`
-    sed -i '/^root.*/ c\root:'"${hash}"':0::::::' ${ROOT}/etc/shadow
-    cp ${ROOT}/etc/shadow ${ROOT}/etc/shadow-
+    sed -i '/^root.*/ c\root:'"${hash}"':16619::::::' ${ROOT}/etc/shadow
+    #cp ${ROOT}/etc/shadow ${ROOT}/etc/shadow-
 }
 
 function setup_first_boot() {
     echo "    ...copying the first_boot script to the Pi"
-    test cp first_boot ${ROOT}/root/first_boot
+    test cp first_boot ${ROOT}/root/.mesh-potato/first_boot
+    test cp first_boot.service ${ROOT}/etc/systemd/system/multi-user.target.wants/first_boot.service
+    test ln -s ${ROOT}/etc/systemd/system/multi-user.target.wants/first_boot.service ${ROOT}/etc/systemd/system/first_boot.service
+    
 }
-
 
 ### ##############################################
 ###

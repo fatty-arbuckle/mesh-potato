@@ -9,13 +9,19 @@ ME=`basename $0`
 
 echo "Running ${ME}..."
 
-pacman -S iw
+echo " *** waiting for network... ***"
+sleep 5
+
+pacman --noconfirm -S iw
+pacman --noconfirm -S avahi
 
 /root/.mesh-potato/enable_mesh
 systemctl enable mesh-potato.service
 
-pacman -S avahi
+cat << EOF > $0
+#! /bin/bash
+echo "First boot previously completed"
+systemctl disable first_boot.service
+   
+EOF
 
-
-## TODO
-# disable or remove this script
