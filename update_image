@@ -14,15 +14,15 @@ then
     exit
 fi
 
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 3 ]; then
     echo "Unexpected number of parameters"
     echo "This script is intended to be run from the image_sdcard script and not by hand"
 fi
 
 ROOT=$1
 PI_HOSTNAME=$2
-HOST_INTERFACE=$3
-HOST_PUBLIC_KEY=$4
+#HOST_INTERFACE=$3
+HOST_PUBLIC_KEY=$3
 
 ### DELETEME? HOST_IPV6=`ip addr show enp0s20u3 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
 
@@ -38,11 +38,11 @@ then
     exit
 fi
 
-if [ -z "$HOST_INTERFACE" ]
-then
-    echo "*** a blank host interface is not supported"
-    exit
-fi
+#if [ -z "$HOST_INTERFACE" ]
+#then
+#    echo "*** a blank host interface is not supported"
+#    exit
+#fi
 
 if [ -z "$HOST_PUBLIC_KEY" ]
 then
@@ -57,10 +57,11 @@ fi
 main() {
     #echo "    ...update settings on ${ROOT}"
     set_hostname
-    set_pacman_mirrotlist
+#    set_pacman_mirrotlist
     create_mesh_network_scripts
     setup_host_ssh_public_key_access
     set_root_password
+    copy_required_packages
     setup_first_boot
 }
 
@@ -82,7 +83,7 @@ function test {
 function set_hostname() {
     echo "    ...setting the hostname to ${PI_HOSTNAME}"
     echo ${PI_HOSTNAME} > ${ROOT}/etc/hostname
-    HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+    #HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
     # hardcode this address in an emergency
     # HOST_IPV6="fe80::9eeb:e8ff:fe20:4920"
 }
@@ -121,6 +122,12 @@ function set_root_password() {
     local hash=`./new_pw_hash | sed 's/[\\\/&]/\\&/g'`
     sed -i '/^root.*/ c\root:'"${hash}"':16619::::::' ${ROOT}/etc/shadow
     #cp ${ROOT}/etc/shadow ${ROOT}/etc/shadow-
+}
+
+function copy_required_packages() {
+    echo "    ...copying the required packages to the Pi"
+    test mkdir -p ${ROOT}/root/.mesh-potato/required_packages
+    test cp required_packages/* ${ROOT}/root/.mesh-potato/required_packages
 }
 
 function setup_first_boot() {
