@@ -21,10 +21,7 @@ fi
 
 ROOT=$1
 PI_HOSTNAME=$2
-#HOST_INTERFACE=$3
 HOST_PUBLIC_KEY=$3
-
-### DELETEME? HOST_IPV6=`ip addr show enp0s20u3 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
 
 if [ ! -d "$ROOT" ]
 then
@@ -38,12 +35,6 @@ then
     exit
 fi
 
-#if [ -z "$HOST_INTERFACE" ]
-#then
-#    echo "*** a blank host interface is not supported"
-#    exit
-#fi
-
 if [ -z "$HOST_PUBLIC_KEY" ]
 then
     echo "*** a public key is required"
@@ -56,13 +47,14 @@ fi
 
 main() {
     #echo "    ...update settings on ${ROOT}"
-    set_hostname
-#    set_pacman_mirrotlist
-    create_mesh_network_scripts
-    setup_host_ssh_public_key_access
-    set_root_password
-    copy_required_packages
-    setup_first_boot
+	set_hostname
+	#set_pacman_mirrotlist
+	create_mesh_network_scripts
+	setup_host_ssh_public_key_access
+	set_root_password
+	copy_required_packages
+	setup_first_boot
+	update_issue
 }
 
 ### ##############################################
@@ -83,24 +75,25 @@ function test {
 function set_hostname() {
     echo "    ...setting the hostname to ${PI_HOSTNAME}"
     echo ${PI_HOSTNAME} > ${ROOT}/etc/hostname
-    #HOST_IPV6=`ip addr show ${HOST_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
-    # hardcode this address in an emergency
-    # HOST_IPV6="fe80::9eeb:e8ff:fe20:4920"
 }
 
 function set_pacman_mirrotlist() {
-    echo "    ...setting the pacman mirrotlist to ${HOST_IPV6}"
-
-    cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
+    eval "ipconfig mesh0"
+    local status=$?
+    if [ $status -eq 0 ]; then
+        HOST_MESH0_IPV6=`ip addr show mesh0 | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
+        echo "    ...setting the pacman mirrotlist to ${HOST_MESH0_IPV6}"
+        cat << EOF > ${ROOT}/etc/pacman.d/mirrorlist
 #
 # Arch Linux ARM repository mirrorlist
 # Generated on ${ME} mesh-potato script
 #
    
 ### Local mesh-potato server
-Server = http://[${HOST_IPV6}%eth0]:8686/\$arch/\$repo
+Server = http://[${HOST_MESH0_IPV6}%eth0]:8686/\$arch/\$repo
    
 EOF
+    fi
 }
 
 function create_mesh_network_scripts() {
@@ -121,7 +114,6 @@ function set_root_password() {
     echo "    ...setting the root password on the Pi"
     local hash=`./new_pw_hash | sed 's/[\\\/&]/\\&/g'`
     sed -i '/^root.*/ c\root:'"${hash}"':16619::::::' ${ROOT}/etc/shadow
-    #cp ${ROOT}/etc/shadow ${ROOT}/etc/shadow-
 }
 
 function copy_required_packages() {
@@ -138,8 +130,14 @@ function setup_first_boot() {
     
 }
 
+function update_issue() {
+	echo "Arch Linux \r (\l)" > ${ROOT}/etc/issue
+	echo "mesh0 \6{mesh0}" >> ${ROOT}/etc/issue
+}
+
 ### ##############################################
 ###
 ### run it
 
 main
+
