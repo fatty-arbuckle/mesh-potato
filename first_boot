@@ -14,10 +14,45 @@ sleep 5
 
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/libnl-3.2.25-1-armv6h.pkg.tar.xz
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/iw-3.17-1-armv6h.pkg.tar.xz
-#pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi-0.6.31-16-armv6h.pkg.tar.xz
 
 /root/.mesh-potato/enable_mesh
 systemctl enable mesh-potato.service
+
+
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi-0.6.31-16-armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/libdaemon-0.14-3-armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/nss-mdns-0.10-6-armv6h.pkg.tar.xz
+
+cat << EOF > /etc/nsswitch.conf
+# Begin /etc/nsswitch.conf
+
+passwd: files
+group: files
+shadow: files
+
+publickey: files
+
+hosts: files mdns dns myhostname
+networks: files
+
+protocols: files
+services: files
+ethers: files
+rpc: files
+
+netgroup: files
+
+# End /etc/nsswitch.conf
+EOF
+
+cat << EOF > /etc/avahi/avahi-daemon.conf
+[server]
+use-ipv4=yes
+use-ipv6=no
+disallow-other-stacks=yes
+allow-interfaces=mesh0
+EOF
+
+systemctl enable avahi-daemon.service
+systemctl restart avahi-daemon.service
 
 cat << EOF > $0
 #! /bin/bash

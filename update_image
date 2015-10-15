@@ -55,6 +55,7 @@ main() {
 	copy_required_packages
 	setup_first_boot
 	update_issue
+	enable_dhcpcd_ipv4ll
 }
 
 ### ##############################################
@@ -133,6 +134,11 @@ function setup_first_boot() {
 function update_issue() {
 	echo "Arch Linux \r (\l)" > ${ROOT}/etc/issue
 	echo "mesh0 \6{mesh0}" >> ${ROOT}/etc/issue
+}
+
+function enable_dhcpcd_ipv4ll() {
+    echo "    ...enabling ipv4ll for on the Pi"
+    sed -i '/^noipv4ll.*/ c\#noipv4ll' ${ROOT}/etc/dhcpcd.conf
 }
 
 ### ##############################################

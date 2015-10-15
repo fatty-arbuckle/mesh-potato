@@ -4,7 +4,6 @@
 ## Commands to join the mesh-potato network
 ##
 
-
 ME=`basename $0`
 
 echo "Running ${ME}..."
@@ -25,4 +24,6 @@ done
 iw dev wlan0 interface add mesh0 type mp
 ifconfig mesh0 up
 iw dev mesh0 mesh join meshpotato
+dhcpcd mesh0
+
 
