@@ -51,6 +51,8 @@ disallow-other-stacks=yes
 allow-interfaces=mesh0
 EOF
 
+systemctl restart dbus
+
 systemctl enable avahi-daemon.service
 systemctl restart avahi-daemon.service
 
