@@ -2,6 +2,17 @@
 
 ME=`basename $0`
 
+SSH_ID_DIR=./access
+MQTT_CA_DIR=./mqtt
+
+## Certificate settings
+SSL_CERT_COUNTRY='US'
+SSL_CERT_STATE='ID'
+SSL_CERT_LOCATION='Boise'
+SSL_CERT_ORG='Roscoe Potato Farm'
+SSL_CERT_ORG_UNIT='Mesh-Potato'
+SSL_CERT_COMMON_NAME='root.potato'
+
 if [ "$EUID" -ne 0 ]
 then
     echo
@@ -33,10 +44,16 @@ help() {
     echo
     echo "    -h, --host <host name>         specify the host name of the new node."
     echo
-#    echo "    -n, --lan <LAN inferface>      specify the name of the LAN interface the host is on."
-#    echo
     echo "    -p, --public_key <public key>  specify public SSH key to use to connect to the Pi."
-    echo "                                   NOTE: If no key is specified the key in ./access/host_id.pub"
+    echo "                                   NOTE: If no key is specified the key in ${SSH_ID_DIR}/host_id.pub"
+    echo "                                         will be used; if no key exists there one will be created."
+    echo
+    echo "    --ca <CA certificate>          specify the certificate authority to use when creating MQTT certificates."
+    echo "                                   NOTE: If no certificate is specified the one in ${MQTT_CA_DIR}/ca_cert.pem"
+    echo "                                         will be used; if no certificate exists there one will be created."
+    echo
+    echo "    --key <CA key>                 specify the key that goes with the CA certificate (see -ca above)"
+    echo "                                   NOTE: If no key is specified the one in ${MQTT_CA_DIR}/ca_key.pem"
     echo "                                         will be used; if no key exists there one will be created."
     echo
     exit
@@ -59,12 +76,16 @@ case $key in
         PI_HOSTNAME="$2"
         shift 
     ;;
-#    -n|--lan)
-#        LAN_INTERFACE="$2"
-#        shift 
-#    ;;
     -p|--public_key)
         HOST_PUBLIC_KEY="$2"
+        shift 
+    ;;
+    --ca)
+        CA_CERT="$2"
+        shift 
+    ;;
+    --key)
+        CA_KEY="$2"
         shift 
     ;;
     *)
@@ -111,29 +132,30 @@ then
     PI_HOSTNAME="mesh-potato-${RANDHOSTSTRING}"
 fi
 
-#if [ -z "$LAN_INTERFACE" ]
-#then
-#    LAN_INTERFACE="enp0s20u3"
-#fi
-
-#VALID_IPV6=`ip addr show ${LAN_INTERFACE} | grep inet6 | awk '{print $2}' | awk -F/ '{print $1}'`
-#if [ -z "$VALID_IPV6" ]
-#then
-#    echo
-#    echo "*** '${LAN_INTERFACE}' must be up with an IPV6 address to continue"
-#    echo
-#    exit
-#fi
-
 if [ ! -f "$HOST_PUBLIC_KEY" ]
 then
-    HOST_PUBLIC_KEY=access/host_id.pub
+    HOST_PUBLIC_KEY=${SSH_ID_DIR}/host_id.pub
     if [ ! -f "$HOST_PUBLIC_KEY" ]
     then
         echo "===> Creating SSH key for accessing Pi"
-        test ssh-keygen -b 2048 -N "" -C "mesh-potato host access" -f access/host_id
+        test ssh-keygen -b 2048 -N "" -C "mesh-potato host access" -f ${SSH_ID_DIR}/host_id
     fi
 fi
+
+if [ ! -f "$CA_CERT" || ! -f "$CA_KEY" ]
+then
+    CA_CERT=${MQTT_CA_DIR}/ca_cert.pem
+    CA_KEY=${MQTT_CA_DIR}/ca_key.pem
+    if [ ! -f "$CA_CERT" || ! -f "$CA_KEY" ]
+    then
+        echo "===> Creating CA cetificate and key for MQTT"
+        mkdir -p ${MQTT_CA_DIR}
+        subject="/C=${SSL_CERT_COUNTRY}/ST=${SSL_CERT_STATE}/L=${SSL_CERT_LOCATION}/O=${SSL_CERT_ORG}/OU=${SSL_CERT_ORG_UNIT}/CN=${SSL_CERT_COMMON_NAME}"
+        openssl req -nodes -newkey rsa:2048 -x509 -keyout ${CA_KEY} -out ${CA_CERT} -subj "${subject}"
+        test openssl x509 -in ${CA_CERT} -noout -text
+    fi
+fi
+
 
 echo
 echo "!!! ERASING ALL DATA ON ${TARGET} !!!"

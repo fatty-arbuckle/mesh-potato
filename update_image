@@ -56,6 +56,8 @@ main() {
 	setup_first_boot
 	update_issue
 	enable_dhcpcd_ipv4ll
+	deploy_mosquitto
+	create_mosquitto_certificate
 }
 
 ### ##############################################
@@ -141,6 +143,28 @@ function enable_dhcpcd_ipv4ll() {
     sed -i '/^noipv4ll.*/ c\#noipv4ll' ${ROOT}/etc/dhcpcd.conf
 }
 
+function deploy_mosquitto() {
+    echo "    ...copying local mosquitto build to the Pi"
+    test cp mosquitto/* ${ROOT}/
+    test cp mesh-potato-mosquitto.conf ${ROOT}/usr/local/etc/mosquitto/mosquitto.conf
+
+    echo "    ...copying local mosquitto build to the Pi"s
+    test CREATE USER MOSQUITTOS
+}
+
+function create_mosquitto_certificate() {
+    echo "    ...creating mosquitto certificates"    
+    # need subject name from image_sdcard script
+    # create key/request
+    # create cert
+    # copy to Pi
+    CA CERT: /root/.mesh-potato/mosquitto/ssl/ca.crt
+    certfile /root/.mesh-potato/mosquitto/ssl/local.crt
+    keyfile /root/.mesh-potato/mosquitto/ssl/local.key
+
+}
+
+	
 ### ##############################################
 ###
 ### run it
