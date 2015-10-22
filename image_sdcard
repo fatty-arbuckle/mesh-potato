@@ -2,16 +2,21 @@
 
 ME=`basename $0`
 
+## Domain to use for the local network
+export AVAHI_DOMAIN='potato'
+
+## Certificate settings
+export SSL_CERT_COUNTRY='US'
+export SSL_CERT_STATE='ID'
+export SSL_CERT_LOCATION='Boise'
+export SSL_CERT_ORG='Roscoe Potato Farm'
+export SSL_CERT_ORG_UNIT='Mesh-Potato'
+export SSL_CERT_COMMON_NAME='root.${AVAHI_DOMAIN}'
+
+
 SSH_ID_DIR=./access
 MQTT_CA_DIR=./mqtt
 
-## Certificate settings
-SSL_CERT_COUNTRY='US'
-SSL_CERT_STATE='ID'
-SSL_CERT_LOCATION='Boise'
-SSL_CERT_ORG='Roscoe Potato Farm'
-SSL_CERT_ORG_UNIT='Mesh-Potato'
-SSL_CERT_COMMON_NAME='root.potato'
 
 if [ "$EUID" -ne 0 ]
 then
@@ -142,11 +147,11 @@ then
     fi
 fi
 
-if [ ! -f "$CA_CERT" || ! -f "$CA_KEY" ]
+if [ ! -f "$CA_CERT" ] || [ ! -f "$CA_KEY" ]
 then
-    CA_CERT=${MQTT_CA_DIR}/ca_cert.pem
-    CA_KEY=${MQTT_CA_DIR}/ca_key.pem
-    if [ ! -f "$CA_CERT" || ! -f "$CA_KEY" ]
+    export CA_CERT=${MQTT_CA_DIR}/ca_cert.pem
+    export CA_KEY=${MQTT_CA_DIR}/ca_key.pem
+    if [ ! -f "$CA_CERT" ] || [ ! -f "$CA_KEY" ]
     then
         echo "===> Creating CA cetificate and key for MQTT"
         mkdir -p ${MQTT_CA_DIR}

@@ -128,9 +128,9 @@ function copy_required_packages() {
 function setup_first_boot() {
     echo "    ...copying the first_boot script to the Pi"
     test cp first_boot ${ROOT}/root/.mesh-potato/first_boot
+    sed -i '/^AVAHI_DOMAIN=.*/ c\AVAHI_DOMAIN='"${AVAHI_DOMAIN}" ${ROOT}/root/.mesh-potato/first_boot
     test cp first_boot.service ${ROOT}/etc/systemd/system/multi-user.target.wants/first_boot.service
     test ln -s ${ROOT}/etc/systemd/system/multi-user.target.wants/first_boot.service ${ROOT}/etc/systemd/system/first_boot.service
-    
 }
 
 function update_issue() {
@@ -145,23 +145,29 @@ function enable_dhcpcd_ipv4ll() {
 
 function deploy_mosquitto() {
     echo "    ...copying local mosquitto build to the Pi"
-    test cp mosquitto/* ${ROOT}/
+    test cp -r mosquitto/* ${ROOT}/
+    test mkdir -p ${ROOT}/usr/local/etc/mosquitto
     test cp mesh-potato-mosquitto.conf ${ROOT}/usr/local/etc/mosquitto/mosquitto.conf
+    test mkdir -p ${ROOT}/root/.mesh-potato/mosquitto/ssl
+    test cp ${CA_CERT} ${ROOT}/root/.mesh-potato/mosquitto/ssl
 
-    echo "    ...copying local mosquitto build to the Pi"s
-    test CREATE USER MOSQUITTOS
+    echo "    ...creating mosquitto user on the Pi"
+    echo "mosquitto:x:225:225:moquitto::/usr/bin/nologin" >> ${ROOT}/etc/passwd
+    echo "mosquitto:x:225" >> ${ROOT}/etc/group
 }
 
 function create_mosquitto_certificate() {
-    echo "    ...creating mosquitto certificates"    
-    # need subject name from image_sdcard script
-    # create key/request
-    # create cert
-    # copy to Pi
-    CA CERT: /root/.mesh-potato/mosquitto/ssl/ca.crt
-    certfile /root/.mesh-potato/mosquitto/ssl/local.crt
-    keyfile /root/.mesh-potato/mosquitto/ssl/local.key
-
+    SSL_CERT_COMMON_NAME="${PI_HOSTNAME}.${AVAHI_DOMAIN}"
+    echo "    ...creating mosquitto certificates for ${SSL_CERT_COMMON_NAME}"
+    
+    PI_KEY=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_key.pem
+    PI_CERT=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_cert.pem
+    PI_CSR=${PI_HOSTNAME}_csr.pem
+    
+    subject="/C=${SSL_CERT_COUNTRY}/ST=${SSL_CERT_STATE}/L=${SSL_CERT_LOCATION}/O=${SSL_CERT_ORG}/OU=${SSL_CERT_ORG_UNIT}/CN=${SSL_CERT_COMMON_NAME}"
+    openssl req -nodes -newkey rsa:2048 -keyout ${PI_KEY} -out ${PI_CSR} -subj "${subject}"
+    openssl x509 -req -days 365 -in ${PI_CSR} -CA ${CA_CERT} -CAkey ${CA_KEY} -set_serial 00001 -out ${PI_CERT}
+    test openssl x509 -in ${PI_CERT} -noout -text
 }
 
 	

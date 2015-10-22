@@ -6,6 +6,7 @@
 
 
 ME=`basename $0`
+AVAHI_DOMAIN=local
 
 echo "Running ${ME}..."
 
@@ -49,6 +50,7 @@ use-ipv4=yes
 use-ipv6=no
 disallow-other-stacks=yes
 allow-interfaces=mesh0
+domain-name=${AVAHI_DOMAIN}
 EOF
 
 systemctl restart dbus
