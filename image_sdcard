@@ -2,6 +2,8 @@
 
 ME=`basename $0`
 
+OUTOUT_DIR=./target
+
 ## Domain to use for the local network
 export AVAHI_DOMAIN='local'
 
@@ -13,10 +15,8 @@ export SSL_CERT_ORG='Roscoe Potato Farm'
 export SSL_CERT_ORG_UNIT='Mesh-Potato'
 export SSL_CERT_COMMON_NAME='root.${AVAHI_DOMAIN}'
 
-
-SSH_ID_DIR=./access
-MQTT_CA_DIR=./mqtt
-
+SSH_ID_DIR=${OUTOUT_DIR}/access
+MQTT_CA_DIR=${OUTOUT_DIR}/mqtt
 
 if [ "$EUID" -ne 0 ]
 then
@@ -42,8 +42,12 @@ help() {
     echo 
     echo "${ME} --target <device>"
     echo
+    echo "  Required:"
+    echo
     echo "    -t, --target <device>          specify the device to create the new image on."
     echo "                                   WARNING: this will be destructive to the device!"
+    echo
+    echo "  Optional:"
     echo
     echo "    -i, --image <?.tar.gz>         specify the Arch Linux RPi image to use."
     echo
@@ -118,9 +122,13 @@ fi
 
 if [ -z "$BASE_IMAGE" ]
 then
-    echo
-    echo "*** The --image option cannot be empty"
-    help
+    BASE_IMAGE=${OUTOUT_DIR}/downloads/ArchLinuxARM-rpi-latest.tar.gz
+    if [ ! -f ${BASE_IMAGE} ]
+    then
+        echo "===> Downloading latest Arch Linux ARM image"
+        mkdir -p ${OUTOUT_DIR}/downloads
+        wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz -O ${BASE_IMAGE}
+    fi
 fi
 
 if [ ! -f "$BASE_IMAGE" ]
@@ -143,7 +151,8 @@ then
     if [ ! -f "$HOST_PUBLIC_KEY" ]
     then
         echo "===> Creating SSH key for accessing Pi"
-        test ssh-keygen -b 2048 -N "" -C "mesh-potato host access" -f ${SSH_ID_DIR}/host_id
+        mkdir -p ${SSH_ID_DIR}
+        ssh-keygen -b 2048 -N "" -C "mesh-potato host access" -f ${SSH_ID_DIR}/host_id
     fi
 fi
 
@@ -184,8 +193,7 @@ while true; do
     esac
 done
 
-OUTPUT=tmp
-IMAGE_ROOT=${OUTPUT}/image
+IMAGE_ROOT=${OUTOUT_DIR}/mnt/image
 TARGET_BOOT=${TARGET}1 
 TARGET_ROOT=${TARGET}2 
 
@@ -231,7 +239,6 @@ test mv ${IMAGE_ROOT}/root/boot/* ${IMAGE_ROOT}/boot/
 
 echo "===> Setting up the image" 
 
-#test ./update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${LAN_INTERFACE} ${HOST_PUBLIC_KEY}
 test ./update_image ${IMAGE_ROOT}/root ${PI_HOSTNAME} ${HOST_PUBLIC_KEY}
 
 echo "===> Unmounting'${TARGET}'" 

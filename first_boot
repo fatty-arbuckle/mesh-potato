@@ -13,14 +13,16 @@ echo "Running ${ME}..."
 echo " *** waiting for network... ***"
 sleep 5
 
-pacman -v --noconfirm -U /root/.mesh-potato/required_packages/libnl-3.2.25-1-armv6h.pkg.tar.xz
-pacman -v --noconfirm -U /root/.mesh-potato/required_packages/iw-3.17-1-armv6h.pkg.tar.xz
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/libnl*armv6h.pkg.tar.xz
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/iw*armv6h.pkg.tar.xz
 
 /root/.mesh-potato/enable_mesh
 systemctl enable mesh-potato.service
 
 
-pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi-0.6.31-16-armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/libdaemon-0.14-3-armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/nss-mdns-0.10-6-armv6h.pkg.tar.xz
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi*armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/libdaemon*armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/nss-mdns*armv6h.pkg.tar.xz
+
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/c-ares*armv6h.pkg.tar.xz
 
 cat << EOF > /etc/nsswitch.conf
 # Begin /etc/nsswitch.conf

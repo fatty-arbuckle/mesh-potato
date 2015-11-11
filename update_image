@@ -55,6 +55,7 @@ main() {
 	copy_required_packages
 	setup_first_boot
 	update_issue
+	update_motd
 	enable_dhcpcd_ipv4ll
 	deploy_mosquitto
 	create_mosquitto_certificate
@@ -120,9 +121,19 @@ function set_root_password() {
 }
 
 function copy_required_packages() {
-    echo "    ...copying the required packages to the Pi"
+    while read PACKAGE
+    do
+        if [ ! -f "${OUTOUT_DIR}/packages/`basename ${PACKAGE}`" ]
+        then
+            echo "    ...downloading ${PACKAGE}"
+            wget ${PACKAGE} -P ${OUTOUT_DIR}/packages
+            wget ${PACKAGE}.sig -P ${OUTOUT_DIR}/packages
+        fi
+    done < required_packages.txt
+    
+    echo "    ...copying the required packages to the Pi"    
     test mkdir -p ${ROOT}/root/.mesh-potato/required_packages
-    test cp required_packages/* ${ROOT}/root/.mesh-potato/required_packages
+    test cp ${OUTOUT_DIR}/packages/* ${ROOT}/root/.mesh-potato/required_packages
 }
 
 function setup_first_boot() {
@@ -135,7 +146,22 @@ function setup_first_boot() {
 
 function update_issue() {
 	echo "Arch Linux \r (\l)" > ${ROOT}/etc/issue
-	echo "mesh0 \6{mesh0}" >> ${ROOT}/etc/issue
+	echo "mesh0 \4{mesh0}" >> ${ROOT}/etc/issue
+}
+
+function update_motd() {
+    echo  > ${ROOT}/etc/motd
+    echo "o     o               8         .oPYo.          o           o         " >> ${ROOT}/etc/motd
+    echo "8b   d8               8         8    8          8           8         " >> ${ROOT}/etc/motd
+    echo "8\`b d'8 .oPYo. .oPYo. 8oPYo.   o8YooP' .oPYo.  o8P .oPYo.  o8P .oPYo. " >> ${ROOT}/etc/motd
+    echo "8 \`o' 8 8oooo8 Yb..   8    8    8      8    8   8  .oooo8   8  8    8 " >> ${ROOT}/etc/motd
+    echo "8     8 8.       'Yb. 8    8    8      8    8   8  8    8   8  8    8 " >> ${ROOT}/etc/motd
+    echo "8     8 \`Yooo' \`YooP' 8    8    8      \`YooP'   8  \`YooP8   8  \`YooP' " >> ${ROOT}/etc/motd
+    echo "..::::..:.....::.....:..:::..:::..::::::.....:::..::.....:::..::.....:" >> ${ROOT}/etc/motd
+    echo "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" >> ${ROOT}/etc/motd
+    echo "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" >> ${ROOT}/etc/motd
+    echo >> ${ROOT}/etc/motd
+
 }
 
 function enable_dhcpcd_ipv4ll() {
@@ -162,7 +188,9 @@ function create_mosquitto_certificate() {
     
     PI_KEY=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_key.pem
     PI_CERT=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_cert.pem
-    PI_CSR=${PI_HOSTNAME}_csr.pem
+    PI_CSR=${OUTOUT_DIR}/requests/${PI_HOSTNAME}_csr.pem
+    
+    mkdir -p ${OUTOUT_DIR}/requests
     
     subject="/C=${SSL_CERT_COUNTRY}/ST=${SSL_CERT_STATE}/L=${SSL_CERT_LOCATION}/O=${SSL_CERT_ORG}/OU=${SSL_CERT_ORG_UNIT}/CN=${SSL_CERT_COMMON_NAME}"
     openssl req -nodes -newkey rsa:2048 -keyout ${PI_KEY} -out ${PI_CSR} -subj "${subject}"
