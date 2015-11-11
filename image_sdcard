@@ -3,7 +3,7 @@
 ME=`basename $0`
 
 ## Domain to use for the local network
-export AVAHI_DOMAIN='potato'
+export AVAHI_DOMAIN='local'
 
 ## Certificate settings
 export SSL_CERT_COUNTRY='US'
