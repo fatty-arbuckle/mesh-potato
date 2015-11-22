@@ -2,7 +2,7 @@
 
 ME=`basename $0`
 
-OUTOUT_DIR=./target
+OUTPUT_DIR=./target
 
 ## Domain to use for the local network
 export AVAHI_DOMAIN='local'
@@ -15,8 +15,8 @@ export SSL_CERT_ORG='Roscoe Potato Farm'
 export SSL_CERT_ORG_UNIT='Mesh-Potato'
 export SSL_CERT_COMMON_NAME='root.${AVAHI_DOMAIN}'
 
-SSH_ID_DIR=${OUTOUT_DIR}/access
-MQTT_CA_DIR=${OUTOUT_DIR}/mqtt
+SSH_ID_DIR=${OUTPUT_DIR}/access
+MQTT_CA_DIR=${OUTPUT_DIR}/mqtt
 
 if [ "$EUID" -ne 0 ]
 then
@@ -122,11 +122,11 @@ fi
 
 if [ -z "$BASE_IMAGE" ]
 then
-    BASE_IMAGE=${OUTOUT_DIR}/downloads/ArchLinuxARM-rpi-latest.tar.gz
+    BASE_IMAGE=${OUTPUT_DIR}/downloads/ArchLinuxARM-rpi-latest.tar.gz
     if [ ! -f ${BASE_IMAGE} ]
     then
         echo "===> Downloading latest Arch Linux ARM image"
-        mkdir -p ${OUTOUT_DIR}/downloads
+        mkdir -p ${OUTPUT_DIR}/downloads
         wget http://archlinuxarm.org/os/ArchLinuxARM-rpi-latest.tar.gz -O ${BASE_IMAGE}
     fi
 fi
@@ -193,7 +193,7 @@ while true; do
     esac
 done
 
-IMAGE_ROOT=${OUTOUT_DIR}/mnt/image
+IMAGE_ROOT=${OUTPUT_DIR}/mnt/image
 TARGET_BOOT=${TARGET}1 
 TARGET_ROOT=${TARGET}2 
 

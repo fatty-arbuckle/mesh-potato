@@ -10,7 +10,7 @@ http://va.us.mirror.archlinuxarm.org/armv6h/core/libtool-2.4.6-3-armv6h.pkg.tar.
 http://va.us.mirror.archlinuxarm.org/armv6h/core/linux-api-headers-4.1.4-1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/core/make-4.1-1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/c-ares-1.10.0-2-armv6h.pkg.tar.xz
-http://va.us.mirror.archlinuxarm.org/armv6h/extra/cmake-3.3.2-3-armv6h.pkg.tar.xz
+http://va.us.mirror.archlinuxarm.org/armv6h/extra/cmake-3.4.0-2-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/gc-7.4.2-3.1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/guile-2.0.11-3-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/jsoncpp-1.6.5-1-armv6h.pkg.tar.xz
@@ -19,3 +19,4 @@ http://va.us.mirror.archlinuxarm.org/armv6h/extra/libdaemon-0.14-3-armv6h.pkg.ta
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/libxml2-2.9.2-2-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/nss-mdns-0.10-6-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/shared-mime-info-1.5-1-armv6h.pkg.tar.xz
+http://va.us.mirror.archlinuxarm.org/armv6h/alarm/fake-hwclock-0.3-1-any.pkg.tar.xz

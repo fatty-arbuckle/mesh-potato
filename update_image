@@ -2,6 +2,8 @@
 
 ME=`basename $0`
 
+OUTPUT_DIR=./target
+
 ### ##############################################
 ###
 ### Validation
@@ -51,11 +53,12 @@ main() {
 	#set_pacman_mirrotlist
 	create_mesh_network_scripts
 	setup_host_ssh_public_key_access
-	set_root_password
+	#set_root_password
 	copy_required_packages
 	setup_first_boot
 	update_issue
 	update_motd
+	update_fake_time
 	enable_dhcpcd_ipv4ll
 	deploy_mosquitto
 	create_mosquitto_certificate
@@ -123,17 +126,19 @@ function set_root_password() {
 function copy_required_packages() {
     while read PACKAGE
     do
-        if [ ! -f "${OUTOUT_DIR}/packages/`basename ${PACKAGE}`" ]
+        if [ ! -f "${OUTPUT_DIR}/packages/`basename ${PACKAGE}`" ]
         then
             echo "    ...downloading ${PACKAGE}"
-            wget ${PACKAGE} -P ${OUTOUT_DIR}/packages
-            wget ${PACKAGE}.sig -P ${OUTOUT_DIR}/packages
+            wget ${PACKAGE} -P ${OUTPUT_DIR}/packages
+            wget ${PACKAGE}.sig -P ${OUTPUT_DIR}/packages
+        else
+            echo "    ...already have ${PACKAGE}"
         fi
     done < required_packages.txt
     
     echo "    ...copying the required packages to the Pi"    
     test mkdir -p ${ROOT}/root/.mesh-potato/required_packages
-    test cp ${OUTOUT_DIR}/packages/* ${ROOT}/root/.mesh-potato/required_packages
+    test cp ${OUTPUT_DIR}/packages/* ${ROOT}/root/.mesh-potato/required_packages
 }
 
 function setup_first_boot() {
@@ -164,6 +169,11 @@ function update_motd() {
 
 }
 
+function update_fake_time() {
+    echo "    ...setting the (fake) time on the Pi to the current time"    
+    date "+%Y%m%d%H%M" > ${ROOT}/root/.mesh-potato/.install_time
+}
+
 function enable_dhcpcd_ipv4ll() {
     echo "    ...enabling ipv4ll for on the Pi"
     sed -i '/^noipv4ll.*/ c\#noipv4ll' ${ROOT}/etc/dhcpcd.conf
@@ -188,9 +198,9 @@ function create_mosquitto_certificate() {
     
     PI_KEY=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_key.pem
     PI_CERT=${ROOT}/root/.mesh-potato/mosquitto/ssl/local_cert.pem
-    PI_CSR=${OUTOUT_DIR}/requests/${PI_HOSTNAME}_csr.pem
+    PI_CSR=${OUTPUT_DIR}/requests/${PI_HOSTNAME}_csr.pem
     
-    mkdir -p ${OUTOUT_DIR}/requests
+    mkdir -p ${OUTPUT_DIR}/requests
     
     subject="/C=${SSL_CERT_COUNTRY}/ST=${SSL_CERT_STATE}/L=${SSL_CERT_LOCATION}/O=${SSL_CERT_ORG}/OU=${SSL_CERT_ORG_UNIT}/CN=${SSL_CERT_COMMON_NAME}"
     openssl req -nodes -newkey rsa:2048 -keyout ${PI_KEY} -out ${PI_CSR} -subj "${subject}"

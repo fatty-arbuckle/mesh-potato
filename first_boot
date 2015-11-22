@@ -24,6 +24,12 @@ pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi*armv6h.pkg.t
 
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/c-ares*armv6h.pkg.tar.xz
 
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/fake-hwclock*any.pkg.tar.xz
+touch -t $(cat /root/.mesh-potato/.install_time) ${ROOT}/usr/lib/systemd/scripts/fake-hwclock.sh
+
+systemctl start fake-hwclock
+systemctl enable fake-hwclock fake-hwclock-save.timer
+
 cat << EOF > /etc/nsswitch.conf
 # Begin /etc/nsswitch.conf
 
