@@ -53,7 +53,7 @@ main() {
 	#set_pacman_mirrotlist
 	create_mesh_network_scripts
 	setup_host_ssh_public_key_access
-	#set_root_password
+	set_root_password
 	copy_required_packages
 	setup_first_boot
 	update_issue

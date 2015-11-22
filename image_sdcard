@@ -13,7 +13,7 @@ export SSL_CERT_STATE='ID'
 export SSL_CERT_LOCATION='Boise'
 export SSL_CERT_ORG='Roscoe Potato Farm'
 export SSL_CERT_ORG_UNIT='Mesh-Potato'
-export SSL_CERT_COMMON_NAME='root.${AVAHI_DOMAIN}'
+export SSL_CERT_COMMON_NAME="root.${AVAHI_DOMAIN}"
 
 SSH_ID_DIR=${OUTPUT_DIR}/access
 MQTT_CA_DIR=${OUTPUT_DIR}/mqtt
