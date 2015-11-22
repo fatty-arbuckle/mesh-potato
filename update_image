@@ -190,6 +190,9 @@ function deploy_mosquitto() {
     echo "    ...creating mosquitto user on the Pi"
     echo "mosquitto:x:225:225:moquitto::/usr/bin/nologin" >> ${ROOT}/etc/passwd
     echo "mosquitto:x:225" >> ${ROOT}/etc/group
+    
+    echo "    ...setting LD_LIBARARY_PATH for libmosquitto"
+    echo "export LD_LIBRARY_PATH=/usr/local/lib/" >> ${ROOT}/root/.bash_profile
 }
 
 function create_mosquitto_certificate() {

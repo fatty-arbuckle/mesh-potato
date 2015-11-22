@@ -13,20 +13,25 @@ echo "Running ${ME}..."
 echo " *** waiting for network... ***"
 sleep 5
 
+# Install required wifi packages
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/libnl*armv6h.pkg.tar.xz
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/iw*armv6h.pkg.tar.xz
 
+# enable mesh networking service
 /root/.mesh-potato/enable_mesh
 systemctl enable mesh-potato.service
 
-
+# install avahi services
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi*armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/libdaemon*armv6h.pkg.tar.xz /root/.mesh-potato/required_packages/nss-mdns*armv6h.pkg.tar.xz
 
+# install c-ares package required by mosquitto
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/c-ares*armv6h.pkg.tar.xz
 
+# install fake hardware clock and set the clock
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/fake-hwclock*any.pkg.tar.xz
 touch -t $(cat /root/.mesh-potato/.install_time) ${ROOT}/usr/lib/systemd/scripts/fake-hwclock.sh
 
+# enable the fake-hwclock
 systemctl start fake-hwclock
 systemctl enable fake-hwclock fake-hwclock-save.timer
 
