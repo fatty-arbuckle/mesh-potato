@@ -9,8 +9,6 @@ then
 function update_image_fn {
   echo "===> Setting up the image"
 
-  exit
-
   ROOT=$1
   PI_HOSTNAME=$2
   HOST_PUBLIC_KEY=$3
@@ -27,7 +25,8 @@ function update_image_fn {
 	update_fake_time
 	enable_dhcpcd_ipv4ll
 	deploy_mosquitto
-	create_mosquitto_certificate
+	#create_mosquitto_certificate
+  create_node_certificate ${PI_HOSTNAME}
 
   return 0
 }
@@ -153,7 +152,7 @@ function deploy_mosquitto() {
     test mkdir -p ${ROOT}/usr/local/etc/mosquitto
     test cp mesh-potato-mosquitto.conf ${ROOT}/usr/local/etc/mosquitto/mosquitto.conf
     test mkdir -p ${ROOT}/root/.mesh-potato/mosquitto/ssl
-    test cp ${CA_CERT} ${ROOT}/root/.mesh-potato/mosquitto/ssl
+    test cp ${mesh_potato_ca_crt} ${ROOT}/root/.mesh-potato/mosquitto/ssl
 
     echo "    ...creating mosquitto user on the Pi"
     echo "mosquitto:x:225:225:moquitto::/usr/bin/nologin" >> ${ROOT}/etc/passwd
@@ -175,6 +174,8 @@ function create_mosquitto_certificate() {
 
     subject="/C=${SSL_CERT_COUNTRY}/ST=${SSL_CERT_STATE}/L=${SSL_CERT_LOCATION}/O=${SSL_CERT_ORG}/OU=${SSL_CERT_ORG_UNIT}/CN=${SSL_CERT_COMMON_NAME}"
     openssl req -nodes -newkey rsa:2048 -keyout ${PI_KEY} -out ${PI_CSR} -subj "${subject}"
-    openssl x509 -req -days 365 -in ${PI_CSR} -CA ${CA_CERT} -CAkey ${CA_KEY} -set_serial 00001 -out ${PI_CERT}
+    openssl x509 -req -days 365 -in ${PI_CSR} -CA ${mesh_potato_ca_crt} -CAkey ${mesh_potato_ca_key} -set_serial 00001 -out ${PI_CERT}
     test openssl x509 -in ${PI_CERT} -noout -text
 }
+
+fi
