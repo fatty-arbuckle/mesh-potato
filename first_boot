@@ -27,6 +27,8 @@ pacman -v --noconfirm -U /root/.mesh-potato/required_packages/avahi*armv6h.pkg.t
 # install c-ares package required by mosquitto
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/c-ares*armv6h.pkg.tar.xz
 
+pacman -v --noconfirm -U /root/.mesh-potato/required_packages/mosquitto-1.4.7-1-armv6h.pkg.tar.xz
+
 # install fake hardware clock and set the clock
 pacman -v --noconfirm -U /root/.mesh-potato/required_packages/fake-hwclock*any.pkg.tar.xz
 touch -t $(cat /root/.mesh-potato/.install_time) ${ROOT}/usr/lib/systemd/scripts/fake-hwclock.sh
@@ -75,6 +77,5 @@ cat << EOF > $0
 #! /bin/bash
 echo "First boot previously completed"
 systemctl disable first_boot.service
-   
-EOF
 
+EOF

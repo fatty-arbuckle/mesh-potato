@@ -148,9 +148,12 @@ function enable_dhcpcd_ipv4ll() {
 
 function deploy_mosquitto() {
     echo "    ...copying local mosquitto build to the Pi"
-    test cp -r mosquitto/* ${ROOT}/
-    test mkdir -p ${ROOT}/usr/local/etc/mosquitto
-    test cp mesh-potato-mosquitto.conf ${ROOT}/usr/local/etc/mosquitto/mosquitto.conf
+
+    test mkdir -p ${ROOT}/root/.mesh-potato/required_packages
+    test cp ./local-packages/* ${ROOT}/root/.mesh-potato/required_packages
+
+    test mkdir -p ${ROOT}/root/.mesh-potato/mosquitto
+    test cp mesh-potato-mosquitto.conf ${ROOT}/root/.mesh-potato/mosquitto/mosquitto.conf
     test mkdir -p ${ROOT}/root/.mesh-potato/mosquitto/ssl
     test cp ${mesh_potato_ca_crt} ${ROOT}/root/.mesh-potato/mosquitto/ssl
 
