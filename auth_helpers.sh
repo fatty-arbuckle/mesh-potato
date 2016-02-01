@@ -66,8 +66,8 @@ then
   function create_node_certificate() {
     echo "    ...creating mosquitto certificates for ${1}"
 
-    local key=${ROOT}/root/.mesh-potato/mosquitto/ssl/local.key
-    local crt=${ROOT}/root/.mesh-potato/mosquitto/ssl/local.crt
+    local key=${ROOT}/root/.mesh-potato/mosquitto/ssl/${1}.key
+    local crt=${ROOT}/root/.mesh-potato/mosquitto/ssl/${1}.crt
     local csr=${OUTPUT_DIR}/requests/${1}.csr
 
     mkdir -p ${OUTPUT_DIR}/requests
@@ -77,7 +77,7 @@ then
               1024
 
     ## TODO fix this decl
-    local SUBJ=/C=US/ST=Massachusetts/L=Server/CN=${1}
+    local SUBJ=/C=US/ST=Massachusetts/L=Server/CN=${1}.local
     openssl req \
               -out ${csr} \
               -key ${key} \
@@ -94,6 +94,10 @@ then
               -days 3650
 
     test openssl x509 -in ${crt} -noout -text
+
+    mkdir -p ${OUTPUT_DIR}/requests/copies
+    test cp ${key} ${OUTPUT_DIR}/requests/copies
+    test cp ${crt} ${OUTPUT_DIR}/requests/copies
   }
 
   #create_certificate_authority
