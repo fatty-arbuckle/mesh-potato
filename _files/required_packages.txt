@@ -10,7 +10,7 @@ http://va.us.mirror.archlinuxarm.org/armv6h/core/libtool-2.4.6-4-armv6h.pkg.tar.
 http://va.us.mirror.archlinuxarm.org/armv6h/core/linux-api-headers-4.1.4-1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/core/make-4.1-1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/c-ares-1.10.0-2-armv6h.pkg.tar.xz
-http://va.us.mirror.archlinuxarm.org/armv6h/extra/cmake-3.4.2-1-armv6h.pkg.tar.xz
+http://va.us.mirror.archlinuxarm.org/armv6h/extra/cmake-3.4.3-1-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/gc-7.4.2-4-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/guile-2.0.11-3-armv6h.pkg.tar.xz
 http://va.us.mirror.archlinuxarm.org/armv6h/extra/jsoncpp-1.6.5-3-armv6h.pkg.tar.xz
